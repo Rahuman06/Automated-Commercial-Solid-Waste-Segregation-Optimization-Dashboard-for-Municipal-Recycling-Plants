@@ -1,0 +1,59 @@
+# Dependencies
+node_modules/
+frontend/node_modules/
+backend/venv/
+venv/
+ENV/
+env/
+.venv/
+
+# Next.js Build Output
+.next/
+frontend/.next/
+out/
+frontend/out/
+build/
+dist/
+
+# Python Cache & Bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+backend/**/__pycache__/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Uploads & Temp Media (keep folder structure if needed)
+backend/uploads/contributions/*
+backend/uploads/memory_refs/*
+!backend/uploads/contributions/.gitkeep
+!backend/uploads/memory_refs/.gitkeep
+
+# Environment & Local Secrets
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+*.log
+
+# Editor & OS Metadata
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# SQLite Temporary Files
+*.db-shm
+*.db-wal
