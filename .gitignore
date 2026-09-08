@@ -29,6 +29,7 @@ backend/**/__pycache__/
 # Uploads & Temp Media (keep folder structure if needed)
 backend/uploads/contributions/*
 backend/uploads/memory_refs/*
+backend/uploads/user_*
 !backend/uploads/contributions/.gitkeep
 !backend/uploads/memory_refs/.gitkeep
 

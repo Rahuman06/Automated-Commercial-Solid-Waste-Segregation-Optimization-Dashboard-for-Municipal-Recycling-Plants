@@ -67,7 +67,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       title: "Smart AI & Vision",
       items: [
         { name: "Live Camera Detection", href: "/live-detection", icon: Camera, badge: "Live" },
-        { name: "Upload Waste Image", href: "/uploads", icon: UploadCloud, badge: "Contribute" },
+        { name: "Contribute to Improve AI", href: "/ai/contribute", icon: UploadCloud, badge: "Citizen AI" },
         { name: "My AI Memory", href: "/my-ai-memory", icon: Sparkles, badge: "Personal" },
         { name: "AI Waste Detection", href: "/ai/detection", icon: ScanEye },
         { name: "AI Retraining Pipeline", href: "/admin/model-training", icon: Cpu, badge: "Retrain" },

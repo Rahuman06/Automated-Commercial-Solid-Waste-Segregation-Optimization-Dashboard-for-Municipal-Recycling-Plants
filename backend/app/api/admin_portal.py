@@ -183,6 +183,7 @@ def get_admin_overview(
 # 3. IMAGE VERIFICATION WORKFLOW
 # =========================================================================
 
+@router.get("/image-verification")
 @router.get("/uploads")
 def list_admin_uploads(
     status_filter: Optional[str] = None,
@@ -282,7 +283,13 @@ def approve_upload(
     return {
         "success": True,
         "message": f"Image approved and added to verified training dataset as '{final_cat} / {final_lbl}'.",
-        "dataset_code": dataset_entry.dataset_code
+        "dataset_code": dataset_entry.dataset_code,
+        "upload": {
+            "id": upload.id,
+            "status": upload.status,
+            "verified_category": upload.verified_category,
+            "verified_label": upload.verified_label
+        }
     }
 
 
@@ -314,7 +321,12 @@ def reject_upload(
     return {
         "success": True,
         "message": "Upload marked as rejected.",
-        "rejection_reason": req.rejection_reason
+        "rejection_reason": req.rejection_reason,
+        "upload": {
+            "id": upload.id,
+            "status": upload.status,
+            "rejection_reason": upload.rejection_reason
+        }
     }
 
 
@@ -443,28 +455,31 @@ def get_verified_dataset(
     total_filtered = query.count()
     images = query.order_by(DatasetImage.created_at.desc()).offset(offset).limit(limit).all()
 
+    img_list = [
+        {
+            "id": img.id,
+            "dataset_code": img.dataset_code,
+            "upload_id": img.upload_id,
+            "image_url": img.image_url,
+            "waste_category": img.waste_category,
+            "object_label": img.object_label,
+            "description": img.description,
+            "location_context": img.location_context,
+            "split": img.split,
+            "verified_by": img.verified_by,
+            "verified_at": img.verified_at.isoformat() if img.verified_at else None,
+            "used_in_training": img.used_in_training
+        }
+        for img in images
+    ]
+
     return {
         "success": True,
         "total_dataset_count": len(all_dataset),
         "filtered_count": total_filtered,
         "category_counts": category_counts,
-        "dataset_images": [
-            {
-                "id": img.id,
-                "dataset_code": img.dataset_code,
-                "upload_id": img.upload_id,
-                "image_url": img.image_url,
-                "waste_category": img.waste_category,
-                "object_label": img.object_label,
-                "description": img.description,
-                "location_context": img.location_context,
-                "split": img.split,
-                "verified_by": img.verified_by,
-                "verified_at": img.verified_at.isoformat() if img.verified_at else None,
-                "used_in_training": img.used_in_training
-            }
-            for img in images
-        ]
+        "dataset_images": img_list,
+        "images": img_list
     }
 
 

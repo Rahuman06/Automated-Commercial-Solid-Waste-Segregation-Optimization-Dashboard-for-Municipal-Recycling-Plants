@@ -21,24 +21,48 @@ router = APIRouter(prefix="/uploads", tags=["User Dataset Uploads"])
 ALLOWED_MIME_TYPES = {"image/jpeg", "image/jpg", "image/png", "image/webp"}
 MAX_FILE_SIZE_BYTES = 15 * 1024 * 1024 # 15 MB
 
+@router.post("", status_code=status.HTTP_201_CREATED)
 @router.post("/", status_code=status.HTTP_201_CREATED)
 async def upload_user_waste_image(
-    file: UploadFile = File(...),
-    object_label: str = Form(...),
+    file: Optional[UploadFile] = File(None),
+    image: Optional[UploadFile] = File(None),
+    object_label: Optional[str] = Form(None),
+    objectName: Optional[str] = Form(None),
+    object_name: Optional[str] = Form(None),
     category: Optional[str] = Form("Unknown"),
     description: Optional[str] = Form(None),
     location_context: Optional[str] = Form(None),
+    location: Optional[str] = Form(None),
     auth: Optional[HTTPAuthorizationCredentials] = Security(security_bearer),
     db: Session = Depends(get_db)
 ):
     """
     Upload a waste image with metadata to help improve municipal AI models.
+    Supports multipart form with 'file' or 'image' and 'object_label' or 'objectName'.
     Validates file format (JPG, PNG, WEBP) and size (<= 15MB).
     Runs automated pre-classification and stages image with status PENDING_VERIFICATION.
     """
+    actual_file = file or image
+    if not actual_file:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No image file provided. Please attach an image file using 'file' or 'image'."
+        )
+
+    actual_label = (object_label or objectName or object_name or "").strip()
+    if not actual_label:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Object name is required. Example: Mobile Phone, Plastic Bottle, Battery, E-Waste."
+        )
+
+    actual_category = (category or "Unknown").strip()
+    actual_desc = (description or "").strip()
+    actual_location = (location_context or location or "Chennai Municipal Area").strip()
+
     # 1. Format & Extension validation
-    content_type = file.content_type.lower() if file.content_type else ""
-    filename = file.filename or "waste_image.jpg"
+    content_type = actual_file.content_type.lower() if actual_file.content_type else ""
+    filename = actual_file.filename or "waste_image.jpg"
     ext = os.path.splitext(filename)[1].lower().replace(".", "")
     if ext == "jpeg":
         ext = "jpg"
@@ -50,7 +74,7 @@ async def upload_user_waste_image(
         )
 
     # Read content & size validation
-    content = await file.read()
+    content = await actual_file.read()
     file_size = len(content)
     if file_size > MAX_FILE_SIZE_BYTES:
         raise HTTPException(
@@ -85,23 +109,26 @@ async def upload_user_waste_image(
     user_email = None
 
     if auth and auth.credentials:
-        payload = decode_access_token(auth.credentials)
-        if payload and payload.get("sub"):
-            user = db.query(User).filter(User.email == payload.get("sub")).first()
-            if user:
-                user_id = user.id
-                user_name = user.full_name or user.username
-                user_email = user.email
+        try:
+            payload = decode_access_token(auth.credentials)
+            if payload and payload.get("sub"):
+                user = db.query(User).filter(User.email == payload.get("sub")).first()
+                if user:
+                    user_id = user.id
+                    user_name = user.full_name or user.username
+                    user_email = user.email
+        except Exception:
+            pass
 
     # 4. Automated AI Pre-Classification
     try:
         ai_result = AIVisionService.detect_and_classify(pil_img, filename_hint=filename)
-        ai_cat = ai_result.get("predicted_category", "Unknown")
-        ai_lbl = ai_result.get("detected_item", object_label)
+        ai_cat = ai_result.get("predicted_category", actual_category)
+        ai_lbl = ai_result.get("detected_item", actual_label)
         ai_conf = ai_result.get("confidence", 0.85)
     except Exception:
-        ai_cat = "Unknown"
-        ai_lbl = object_label
+        ai_cat = actual_category
+        ai_lbl = actual_label
         ai_conf = 0.50
 
     # 5. Persist Upload record
@@ -114,10 +141,10 @@ async def upload_user_waste_image(
         image_url=image_url,
         file_size_bytes=file_size,
         mime_type=content_type or f"image/{ext}",
-        category=category or "Unknown",
-        object_label=object_label,
-        description=description,
-        location_context=location_context,
+        category=actual_category,
+        object_label=actual_label,
+        description=actual_desc,
+        location_context=actual_location,
         status="PENDING_VERIFICATION",
         ai_predicted_category=ai_cat,
         ai_predicted_label=ai_lbl,
@@ -129,27 +156,33 @@ async def upload_user_waste_image(
     db.commit()
     db.refresh(upload_record)
 
+    res_payload = {
+        "id": upload_record.id,
+        "upload_id": upload_record.upload_id,
+        "imageUrl": upload_record.image_url,
+        "image_url": upload_record.image_url,
+        "original_filename": upload_record.original_filename,
+        "status": "PENDING_VERIFICATION",
+        "category": upload_record.category,
+        "object_label": upload_record.object_label,
+        "objectName": upload_record.object_label,
+        "description": upload_record.description,
+        "location_context": upload_record.location_context,
+        "ai_predicted_category": upload_record.ai_predicted_category,
+        "ai_predicted_label": upload_record.ai_predicted_label,
+        "ai_confidence": upload_record.ai_confidence,
+        "created_at": upload_record.created_at.isoformat()
+    }
+
     return {
         "success": True,
-        "message": "Image uploaded successfully and queued for municipal admin verification.",
-        "upload": {
-            "id": upload_record.id,
-            "upload_id": upload_record.upload_id,
-            "original_filename": upload_record.original_filename,
-            "image_url": upload_record.image_url,
-            "status": upload_record.status,
-            "category": upload_record.category,
-            "object_label": upload_record.object_label,
-            "description": upload_record.description,
-            "location_context": upload_record.location_context,
-            "ai_predicted_category": upload_record.ai_predicted_category,
-            "ai_predicted_label": upload_record.ai_predicted_label,
-            "ai_confidence": upload_record.ai_confidence,
-            "created_at": upload_record.created_at.isoformat()
-        }
+        "message": "Image uploaded successfully and is waiting for admin verification",
+        "upload": res_payload,
+        "data": res_payload
     }
 
 
+@router.get("")
 @router.get("/")
 def get_user_uploads(
     status_filter: Optional[str] = None,
