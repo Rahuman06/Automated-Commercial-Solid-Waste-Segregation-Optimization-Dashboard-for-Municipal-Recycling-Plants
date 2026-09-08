@@ -58,3 +58,6 @@ Thumbs.db
 # SQLite Temporary Files
 *.db-shm
 *.db-wal
+
+# SQLite database files
+*.db
