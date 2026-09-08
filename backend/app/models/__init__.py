@@ -6,6 +6,7 @@ from app.models.facility import SegregationPlant
 from app.models.vehicle import CollectionVehicle
 from app.models.detection import AIDetection
 from app.models.contribution import ImageContribution
+from app.models.upload import Upload, DatasetImage
 from app.models.ai_model import AIModelVersion, TrainingJob
 from app.models.dataset import DatasetSource, DatasetImport
 from app.models.optimization import EnvironmentalMetric, OperationalAlert, OptimizationRecommendation
@@ -22,6 +23,8 @@ __all__ = [
     "CollectionVehicle",
     "AIDetection",
     "ImageContribution",
+    "Upload",
+    "DatasetImage",
     "AIModelVersion",
     "TrainingJob",
     "DatasetSource",

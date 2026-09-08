@@ -235,4 +235,112 @@ export const api = {
   // Simulation
   getSimulationStatus: () => fetchApi<any>("/simulation/status"),
   toggleSimulation: () => fetchApi<any>("/simulation/toggle", { method: "POST" }),
+
+  // User Dataset Uploads
+  uploadWasteImage: (formData: FormData) =>
+    fetchApi<any>("/uploads/", {
+      method: "POST",
+      body: formData,
+    }),
+  getUserUploads: (statusFilter?: string) => {
+    const q = statusFilter ? `?status_filter=${encodeURIComponent(statusFilter)}` : "";
+    return fetchApi<any>(`/uploads/${q}`);
+  },
+  getUploadDetail: (id: number) => fetchApi<any>(`/uploads/${id}`),
+
+  // Admin Portal & Verification
+  adminLogin: (data: { email: string; password: string }) =>
+    fetchApi<any>("/admin/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    }),
+  getAdminOverview: () => fetchApi<any>("/admin/overview"),
+  getAdminUploads: (statusFilter?: string, limit: number = 100, offset: number = 0) => {
+    const params = new URLSearchParams();
+    if (statusFilter && statusFilter !== "All") params.append("status_filter", statusFilter);
+    params.append("limit", limit.toString());
+    params.append("offset", offset.toString());
+    return fetchApi<any>(`/admin/uploads?${params.toString()}`);
+  },
+  approveAdminUpload: (id: number, data: { verified_category?: string; verified_label?: string; admin_notes?: string }) =>
+    fetchApi<any>(`/admin/uploads/${id}/approve`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    }),
+  rejectAdminUpload: (id: number, data: { rejection_reason: string; admin_notes?: string }) =>
+    fetchApi<any>(`/admin/uploads/${id}/reject`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    }),
+  updateAdminUpload: (id: number, data: any) =>
+    fetchApi<any>(`/admin/uploads/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    }),
+  batchApproveAdminUploads: (upload_ids: number[]) =>
+    fetchApi<any>("/admin/uploads/batch-approve", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ upload_ids }),
+    }),
+  batchRejectAdminUploads: (upload_ids: number[], rejection_reason: string) =>
+    fetchApi<any>("/admin/uploads/batch-reject", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ upload_ids, rejection_reason }),
+    }),
+
+  // Admin Verified Dataset
+  getVerifiedDataset: (category?: string, search?: string, limit: number = 100, offset: number = 0) => {
+    const params = new URLSearchParams();
+    if (category && category !== "All") params.append("category", category);
+    if (search) params.append("search", search);
+    params.append("limit", limit.toString());
+    params.append("offset", offset.toString());
+    return fetchApi<any>(`/admin/dataset?${params.toString()}`);
+  },
+  updateDatasetImage: (id: number, data: any) =>
+    fetchApi<any>(`/admin/dataset/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    }),
+  deleteDatasetImage: (id: number) =>
+    fetchApi<any>(`/admin/dataset/${id}`, {
+      method: "DELETE",
+    }),
+  exportDataset: (format: "json" | "csv" = "json") =>
+    fetchApi<any>(`/admin/dataset/export?format=${format}`),
+
+  // Real Model Training
+  startAdminTraining: (config?: { candidate_version?: string; total_epochs?: number; batch_size?: number; learning_rate?: number }) =>
+    fetchApi<any>("/admin/train-model", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(config || {}),
+    }),
+  getAdminTrainingStatus: () => fetchApi<any>("/admin/training-status"),
+
+  // Model Versions & Deployment
+  getAdminModels: () => fetchApi<any>("/admin/models"),
+  activateAdminModel: (id: number) =>
+    fetchApi<any>(`/admin/models/${id}/activate`, {
+      method: "POST",
+    }),
+  rollbackAdminModel: (id: number) =>
+    fetchApi<any>(`/admin/models/${id}/rollback`, {
+      method: "POST",
+    }),
+  getActiveAdminModel: () => fetchApi<any>("/admin/models/active"),
+
+  // Direct Live Webcam Detection using Active Model
+  detectWebcamFrame: (formData: FormData) =>
+    fetchApi<any>("/detect", {
+      method: "POST",
+      body: formData,
+    }),
 };

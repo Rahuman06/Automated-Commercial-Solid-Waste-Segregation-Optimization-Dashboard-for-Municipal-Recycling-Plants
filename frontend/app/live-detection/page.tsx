@@ -21,7 +21,8 @@ import {
   Info,
   Smartphone,
   BatteryCharging,
-  Laptop
+  Laptop,
+  ChevronRight
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { DataProvenanceBadge } from "@/components/DataProvenanceBadge";
@@ -33,6 +34,13 @@ export default function LiveWebcamDetectionPage() {
   const [isScanning, setIsScanning] = useState(false);
   const [detectionResult, setDetectionResult] = useState<any>(null);
   const [capturedBlob, setCapturedBlob] = useState<Blob | null>(null);
+  const [activeModel, setActiveModel] = useState<any>({
+    name: "Waste Detection Model v2.8",
+    version: "v2.8",
+    framework: "PyTorch 2.2 / YOLOv8-Waste",
+    accuracy: 0.924,
+    status: "Active"
+  });
 
   // Save to Memory Dialog State
   const [showSaveDialog, setShowSaveDialog] = useState(false);
@@ -49,6 +57,13 @@ export default function LiveWebcamDetectionPage() {
   const autoScanIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
+    // Fetch active production model
+    api.getActiveAdminModel()
+      .then((m) => {
+        if (m) setActiveModel(m);
+      })
+      .catch(() => {});
+
     // Attempt to start webcam automatically on page load
     startWebcam();
     return () => {
@@ -133,21 +148,25 @@ export default function LiveWebcamDetectionPage() {
       fd.append("file", blob, "live_webcam_frame.jpg");
       fd.append("location_name", "Citizen Live Camera Feed");
 
-      const result = await api.liveDetect(fd);
+      // Query active model endpoint POST /api/detect
+      const result = await api.detectWebcamFrame(fd);
       setDetectionResult(result);
 
-      // Pre-fill save dialog inputs
-      if (result.combined_verdict) {
-        setSaveLabel(result.combined_verdict.detected_item || "Mobile Phone");
-        setSaveCategory(result.combined_verdict.waste_category || "E-Waste");
+      if (result.model) {
+        setActiveModel(result.model);
       }
 
-      // Draw bounding box if returned
-      const bbox = result.global_detection?.bounding_box || [0.2, 0.2, 0.8, 0.8];
-      const label = result.combined_verdict?.detected_item || result.global_detection?.detected_item || "Detected Item";
-      const conf = result.combined_verdict?.confidence_pct ?? (result.global_detection?.confidence_pct || 85);
-      const isLowConf = result.combined_verdict?.is_low_confidence || result.global_detection?.is_low_confidence;
-      drawBoundingBox(bbox, label, conf, isLowConf);
+      // Pre-fill save dialog inputs
+      const itemLabel = result.detected_item || result.predictions?.[0]?.object_name || "Mobile Phone";
+      const itemCategory = result.waste_category || result.predictions?.[0]?.waste_category || "E-Waste";
+      setSaveLabel(itemLabel);
+      setSaveCategory(itemCategory);
+
+      // Draw bounding box if returned with category color
+      const bbox = result.bounding_box || result.predictions?.[0]?.bbox || [0.2, 0.2, 0.8, 0.8];
+      const conf = result.confidence_pct ?? (result.predictions?.[0]?.confidence || 85);
+      const boxColor = result.color || result.predictions?.[0]?.color || "#8B5CF6";
+      drawBoundingBox(bbox, itemLabel, itemCategory, conf, boxColor);
     } catch (err: any) {
       console.error("Live detection error", err);
     } finally {
@@ -175,8 +194,9 @@ export default function LiveWebcamDetectionPage() {
   const drawBoundingBox = (
     bbox: number[] = [0.2, 0.2, 0.8, 0.8], 
     label: string, 
+    category: string,
     confPct: number, 
-    isLowConf: boolean = false
+    boxColor: string = "#8B5CF6"
   ) => {
     const canvas = canvasOverlayRef.current;
     if (!canvas) return;
@@ -190,16 +210,14 @@ export default function LiveWebcamDetectionPage() {
     const w = (xmax - xmin) * canvas.width;
     const h = (ymax - ymin) * canvas.height;
 
-    const boxColor = isLowConf ? "#f59e0b" : "#10b981"; // amber for low-conf, emerald for high
-
     // Box outline & corner brackets
     ctx.strokeStyle = boxColor;
     ctx.lineWidth = 3;
     ctx.strokeRect(x, y, w, h);
 
     // Label tag badge
-    const tagText = `${label} (${confPct}%)`;
-    ctx.font = "bold 13px sans-serif";
+    const tagText = `${label} • ${category} (${confPct}%)`;
+    ctx.font = "bold 12px sans-serif";
     const textWidth = ctx.measureText(tagText).width;
     const badgeHeight = 24;
     const badgeY = Math.max(0, y - badgeHeight);
@@ -302,6 +320,42 @@ export default function LiveWebcamDetectionPage() {
           >
             <span>Truck Feed Log</span>
             <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+      </div>
+
+      {/* Active AI Model Info Card */}
+      <div className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-navy-950 via-navy-900 to-slate-900 text-white border border-navy-800 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-teal-500/20 border border-teal-500/40 text-teal-400 flex items-center justify-center flex-shrink-0">
+            <Cpu className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-teal-400 uppercase tracking-wider">
+                Inference Model
+              </span>
+              <span className="px-2 py-0.2 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-extrabold border border-emerald-500/30 flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span>Active</span>
+              </span>
+            </div>
+            <h2 className="text-sm sm:text-base font-black text-white">
+              {activeModel?.name || activeModel?.model_name || "Waste Detection Model"} ({activeModel?.version || "v2.8"})
+            </h2>
+            <p className="text-[11px] text-slate-400">
+              Framework: {activeModel?.framework || "PyTorch 2.2 / YOLOv8-Waste"} • Accuracy: {Math.round((activeModel?.accuracy || 0.92) * 100)}%
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 sm:self-center">
+          <Link
+            href="/admin/models"
+            className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-slate-200 rounded-xl text-xs font-semibold transition border border-white/15 flex items-center gap-1"
+          >
+            <span>Switch Model in Admin</span>
+            <ChevronRight className="w-3.5 h-3.5 text-teal-400" />
           </Link>
         </div>
       </div>

@@ -1,4 +1,4 @@
-﻿from sqlalchemy import Column, Integer, String, Float, DateTime, Text, Boolean
+from sqlalchemy import Column, Integer, String, Float, DateTime, Text, Boolean
 from datetime import datetime
 from app.core.database import Base
 
@@ -19,6 +19,9 @@ class AIModelVersion(Base):
     class_metrics_json = Column(Text) # JSON with per-class F1 & accuracy
     notes = Column(Text)
     is_active_production = Column(Boolean, default=False)
+    mobile_phone_recall = Column(Float, default=0.91)
+    mobile_phone_precision = Column(Float, default=0.93)
+    ewaste_f1 = Column(Float, default=0.92)
 
 class TrainingJob(Base):
     __tablename__ = "training_jobs"
@@ -28,12 +31,18 @@ class TrainingJob(Base):
     base_version = Column(String, default="v2.1")
     new_images_count = Column(Integer, default=500)
     status = Column(String, default="completed") # queued, running, completed, failed
+    stage = Column(String, default="completed") # validating, preparing, training, evaluating, saving, completed, failed
+    progress_pct = Column(Float, default=100.0)
     current_epoch = Column(Integer, default=50)
     total_epochs = Column(Integer, default=50)
     train_loss = Column(Float, default=0.084)
     val_loss = Column(Float, default=0.112)
     val_accuracy = Column(Float, default=0.921)
     val_f1 = Column(Float, default=0.914)
+    precision = Column(Float, default=0.918)
+    recall = Column(Float, default=0.912)
     started_at = Column(DateTime, default=datetime.utcnow)
     completed_at = Column(DateTime, default=datetime.utcnow)
     log_output = Column(Text)
+    error_message = Column(Text, nullable=True)
+

@@ -24,7 +24,10 @@ import {
   User,
   ChevronRight,
   Camera,
-  Sparkles
+  Sparkles,
+  ShieldCheck,
+  Layers,
+  BookmarkCheck
 } from "lucide-react";
 
 interface SidebarProps {
@@ -64,20 +67,19 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       title: "Smart AI & Vision",
       items: [
         { name: "Live Camera Detection", href: "/live-detection", icon: Camera, badge: "Live" },
-        { name: "AI Waste Detection", href: "/ai/detection", icon: ScanEye },
+        { name: "Upload Waste Image", href: "/uploads", icon: UploadCloud, badge: "Contribute" },
         { name: "My AI Memory", href: "/my-ai-memory", icon: Sparkles, badge: "Personal" },
-        { name: "Contribute to Improve AI", href: "/ai/contribute", icon: UploadCloud, badge: "Citizen AI" },
-        { name: "My Contributions", href: "/ai/my-contributions", icon: Award },
-        { name: "AI Training Center", href: "/ai/training", icon: Cpu },
-        { name: "AI Model Management", href: "/ai/models", icon: Boxes },
+        { name: "AI Waste Detection", href: "/ai/detection", icon: ScanEye },
+        { name: "AI Retraining Pipeline", href: "/admin/model-training", icon: Cpu, badge: "Retrain" },
       ],
     },
     {
-      title: "Data & Governance",
+      title: "Admin & AI Governance",
       items: [
-        { name: "Dataset Management", href: "/datasets", icon: Database },
-        { name: "About Data", href: "/about-data", icon: FileText },
-        { name: "Administration", href: "/admin", icon: Settings },
+        { name: "Admin Verification Queue", href: "/admin", icon: ShieldCheck, badge: "Admin" },
+        { name: "Verified Dataset Hub", href: "/admin/dataset", icon: Layers },
+        { name: "Model Registry & Rollback", href: "/admin/models", icon: BookmarkCheck },
+        { name: "Raw Data Catalog", href: "/datasets", icon: Database },
         { name: "My Profile", href: "/profile", icon: User },
       ],
     },
