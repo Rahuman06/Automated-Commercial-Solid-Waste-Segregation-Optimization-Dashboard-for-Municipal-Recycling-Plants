@@ -505,9 +505,7 @@ export default function AdminDashboardPage() {
               <tbody className="divide-y divide-slate-100">
                 {uploads.map((u) => {
                   const isSelected = selectedIds.includes(u.id);
-                  const displayImgUrl = u.image_url.startsWith("http")
-                    ? u.image_url
-                    : `http://localhost:8000${u.image_url}`;
+                  const displayImgUrl = u.image_url;
 
                   return (
                     <tr
@@ -697,11 +695,7 @@ export default function AdminDashboardPage() {
             <div className="flex items-start gap-4 p-3 bg-slate-50 rounded-xl border border-slate-200">
               <div className="w-20 h-20 rounded-lg overflow-hidden bg-slate-900 flex-shrink-0">
                 <img
-                  src={
-                    approvingUpload.image_url.startsWith("http")
-                      ? approvingUpload.image_url
-                      : `http://localhost:8000${approvingUpload.image_url}`
-                  }
+                  src={approvingUpload.image_url}
                   alt={approvingUpload.object_label}
                   className="w-full h-full object-cover"
                 />

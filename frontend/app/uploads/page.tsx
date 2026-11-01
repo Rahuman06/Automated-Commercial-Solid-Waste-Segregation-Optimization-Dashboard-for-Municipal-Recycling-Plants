@@ -515,9 +515,7 @@ export default function UserUploadsPage() {
                     icon: Clock
                   };
                   const StatusIcon = statusInfo.icon;
-                  const displayImgUrl = u.image_url.startsWith("http")
-                    ? u.image_url
-                    : `http://localhost:8000${u.image_url}`;
+                  const displayImgUrl = u.image_url;
 
                   return (
                     <tr key={u.id} className="hover:bg-slate-50 transition">

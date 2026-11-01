@@ -260,119 +260,66 @@ class AIVisionService:
         embedding = AIVisionService.extract_image_embedding(image)
 
         # -------------------------------------------------------------
-        # STAGE 2: LEVEL 2 ITEM CLASSIFICATION
+        # STAGE 2: REAL PYTORCH DEEP LEARNING MODEL INFERENCE
         # -------------------------------------------------------------
-        detected_item = None
-        confidence = 0.88
-        stage_notes = "Multi-scale feature pattern matched"
+        from app.services.model_inference import inference_service
+        raw_pred = inference_service.predict(image)
+        model_cat = raw_pred["predicted_category"]
+        confidence = raw_pred["confidence"]
+        candidates = raw_pred["candidates"]
+        active_version = raw_pred["model_version"]
+        hw_dev = raw_pred["hardware_device"]
 
-        # Specialized E-Waste Signatures
-        if any(term in hint for term in ["phone", "mobile", "smart phone", "smartphone", "iphone", "samsung", "android", "cell"]):
-            detected_item = "Mobile Phone" if random.random() > 0.4 else "Smartphone"
-            confidence = round(random.uniform(0.91, 0.97), 2)
-            stage_notes = "Rectangular mobile display aspect ratio (~19.5:9) and bezel edge signature confirmed"
-        elif any(term in hint for term in ["feature phone", "keypad phone", "nokia"]):
-            detected_item = "Feature Phone"
-            confidence = round(random.uniform(0.89, 0.95), 2)
-            stage_notes = "Numeric keypad matrix and compact display geometry identified"
-        elif any(term in hint for term in ["tablet", "ipad", "tab"]):
-            detected_item = "Tablet"
-            confidence = round(random.uniform(0.89, 0.96), 2)
-            stage_notes = "Large rectangular capacitive panel (~4:3 to 16:10 aspect ratio) detected"
-        elif any(term in hint for term in ["laptop", "notebook", "thinkpad", "macbook"]):
-            detected_item = "Laptop"
-            confidence = round(random.uniform(0.90, 0.98), 2)
-            stage_notes = "Dual-plane clamshell geometry with keyboard base and display hinges detected"
-        elif any(term in hint for term in ["keyboard", "keypad"]):
-            detected_item = "Keyboard"
-            confidence = round(random.uniform(0.91, 0.96), 2)
-            stage_notes = "Periodic rectangular keycap grid frequency pattern detected"
-        elif any(term in hint for term in ["mouse"]):
-            detected_item = "Mouse"
-            confidence = round(random.uniform(0.88, 0.94), 2)
-            stage_notes = "Curvilinear palm contour with scroll wheel indentation detected"
-        elif any(term in hint for term in ["monitor", "display", "screen"]):
-            detected_item = "Computer Monitor"
-            confidence = round(random.uniform(0.87, 0.93), 2)
-            stage_notes = "Desktop monitor panel with stand pedestal profile identified"
-        elif any(term in hint for term in ["battery", "lithium", "cell", "duracell", "ni-mh"]):
-            detected_item = "Battery"
-            confidence = round(random.uniform(0.90, 0.97), 2)
-            stage_notes = "Cylindrical cell / rectangular pouch with metallic terminal points detected"
-        elif any(term in hint for term in ["power bank", "powerbank", "external battery"]):
-            detected_item = "Power Bank"
-            confidence = round(random.uniform(0.88, 0.94), 2)
-            stage_notes = "Solid rectangular prism enclosure with USB port cutouts identified"
-        elif any(term in hint for term in ["charger", "adapter", "plug"]):
-            detected_item = "Charger" if "adapter" not in hint else "Charging Adapter"
-            confidence = round(random.uniform(0.89, 0.95), 2)
-            stage_notes = "Cuboidal transformer block with dual-prong conductive pins detected"
-        elif any(term in hint for term in ["cable", "usb", "wire", "cord", "lightning"]):
-            detected_item = "USB Cable"
-            confidence = round(random.uniform(0.87, 0.94), 2)
-            stage_notes = "High-aspect-ratio curvilinear flexible cable path detected"
-        elif any(term in hint for term in ["earphone", "earbud", "airpod", "headphone"]):
-            detected_item = "Earphones" if "headphone" not in hint else "Headphones"
-            confidence = round(random.uniform(0.89, 0.95), 2)
-            stage_notes = "Acoustic transducer enclosure with ear tip / headband silhouette detected"
-        elif any(term in hint for term in ["circuit", "pcb", "motherboard", "chip"]):
-            detected_item = "Circuit Board"
-            confidence = round(random.uniform(0.92, 0.98), 2)
-            stage_notes = "High-frequency copper conductive traces and solder pad grid detected"
-        elif any(term in hint for term in ["e-waste", "ewaste", "electronic"]):
-            detected_item = "Electronic Components"
-            confidence = round(random.uniform(0.86, 0.92), 2)
-            stage_notes = "General electronic components with metallic leads detected"
-
-        # Non-Electronic Categories
-        elif any(term in hint for term in ["bottle", "pet", "polybag", "plastic"]):
-            detected_item = "Plastic Bottle (PET)" if "bottle" in hint else "Single-use Polybag"
-            confidence = round(random.uniform(0.87, 0.95), 2)
-        elif any(term in hint for term in ["paper", "news", "print"]):
-            detected_item = "Newspaper & Magazines" if "news" in hint else "Office Printing Paper"
-            confidence = round(random.uniform(0.88, 0.94), 2)
-        elif any(term in hint for term in ["cardboard", "box", "carton"]):
+        # Level 1 and Level 2 Mapping
+        if model_cat == "Biodegradable":
+            primary_category = "Organic Waste"
+            detected_item = "Vegetable & Fruit Peels" if any(t in hint for t in ["peel", "fruit", "food", "scrap"]) else "Garden Leaves & Twigs"
+            stage_notes = f"PyTorch {active_version} ({hw_dev}): Organic biodegradable matter detected"
+        elif model_cat == "Cardboard":
+            primary_category = "Paper"
             detected_item = "Corrugated Box"
-            confidence = round(random.uniform(0.90, 0.96), 2)
-        elif any(term in hint for term in ["can", "tin", "aluminum"]):
-            detected_item = "Aluminum Beverage Can"
-            confidence = round(random.uniform(0.91, 0.97), 2)
-        elif any(term in hint for term in ["glass", "jar"]):
-            detected_item = "Glass Beverage Bottle"
-            confidence = round(random.uniform(0.87, 0.94), 2)
-        elif any(term in hint for term in ["leaf", "food", "banana", "peel", "vegetable"]):
-            detected_item = "Vegetable & Fruit Peels" if "peel" in hint or "banana" in hint else "Garden Leaves & Twigs"
-            confidence = round(random.uniform(0.89, 0.95), 2)
-        else:
-            # Visual Geometry Fallback Inference
-            # Check for Mobile Phone aspect ratio (around 1.8 to 2.2) and dark center display
-            if (1.7 <= aspect_ratio <= 2.3 or 1.7 <= inv_aspect <= 2.3) and brightness < 110:
+            stage_notes = f"PyTorch {active_version} ({hw_dev}): Corrugated kraft paperboard detected"
+        elif model_cat == "Paper":
+            primary_category = "Paper"
+            detected_item = "Newspaper & Magazines" if any(t in hint for t in ["news", "mag"]) else "Office Printing Paper"
+            stage_notes = f"PyTorch {active_version} ({hw_dev}): Cellulose paper material detected"
+        elif model_cat == "Plastic":
+            primary_category = "Plastic"
+            detected_item = "Plastic Bottle (PET)" if any(t in hint for t in ["bottle", "pet"]) else "Plastic Food Container"
+            stage_notes = f"PyTorch {active_version} ({hw_dev}): Synthetic polymer / plastic detected"
+        elif model_cat == "Metal":
+            primary_category = "Metal"
+            detected_item = "Aluminum Beverage Can" if any(t in hint for t in ["can", "tin"]) else "Scrap Metal Cutlery"
+            stage_notes = f"PyTorch {active_version} ({hw_dev}): Metallic alloy object identified"
+        elif model_cat == "Glass":
+            primary_category = "Glass"
+            detected_item = "Glass Beverage Bottle" if any(t in hint for t in ["bottle"]) else "Glass Condiment Jar"
+            stage_notes = f"PyTorch {active_version} ({hw_dev}): Vitreous glass container identified"
+        elif model_cat == "E-Waste":
+            primary_category = "E-Waste"
+            if any(t in hint for t in ["phone", "mobile", "smartphone", "cell"]):
                 detected_item = "Mobile Phone"
-                confidence = 0.82
-                stage_notes = "Detected smartphone form factor (aspect ratio ~2.0 with dark display panel)"
-            elif 1.25 <= aspect_ratio <= 1.55 and brightness < 110:
-                detected_item = "Tablet"
-                confidence = 0.78
-                stage_notes = "Detected large rectangular tablet form factor"
-            elif b > r and b > g:
-                detected_item = "Plastic Bottle (PET)"
-                confidence = 0.81
-            elif g > r and g > b:
-                detected_item = "Garden Leaves & Twigs"
-                confidence = 0.83
-            elif r > 150 and g > 110 and b < 80:
-                detected_item = "Corrugated Box"
-                confidence = 0.84
+            elif any(t in hint for t in ["battery", "cell", "lithium", "power bank"]):
+                detected_item = "Battery"
+            elif any(t in hint for t in ["laptop", "notebook"]):
+                detected_item = "Laptop"
+            elif any(t in hint for t in ["keyboard", "keypad"]):
+                detected_item = "Keyboard"
+            elif any(t in hint for t in ["mouse"]):
+                detected_item = "Mouse"
+            elif any(t in hint for t in ["charger", "adapter"]):
+                detected_item = "Charger"
+            elif any(t in hint for t in ["cable", "usb", "wire"]):
+                detected_item = "USB Cable"
+            elif any(t in hint for t in ["circuit", "pcb"]):
+                detected_item = "Circuit Board"
             else:
-                # Ambiguous edge case -> low confidence candidate
-                ambiguous_candidates = ["Mobile Phone", "Plastic Food Container", "Corrugated Box", "Battery"]
-                detected_item = random.choice(ambiguous_candidates)
-                confidence = round(random.uniform(0.48, 0.64), 2) # Deliberate low confidence!
-
-        # -------------------------------------------------------------
-        # STAGE 3: LEVEL 1 PRIMARY CATEGORY MAPPING
-        # -------------------------------------------------------------
-        primary_category = ITEM_TO_PRIMARY_CATEGORY.get(detected_item, "Mixed Waste")
+                detected_item = "Battery" if confidence > 0.8 else "Mobile Phone"
+            stage_notes = f"PyTorch {active_version} ({hw_dev}): Electronic waste item identified"
+        else:
+            primary_category = model_cat
+            detected_item = model_cat
+            stage_notes = f"PyTorch {active_version} ({hw_dev}) classification complete"
 
         # -------------------------------------------------------------
         # STAGE 4: LOW CONFIDENCE STATUS & ALTERNATIVES
@@ -388,17 +335,8 @@ class AIVisionService:
         secondary_item = random.choice(alternatives)
         secondary_category = ITEM_TO_PRIMARY_CATEGORY.get(secondary_item, "Mixed Waste")
 
-        # Dynamic bounding box based on aspect ratio
-        if aspect_ratio >= 1.0: # Landscape or wide
-            ymin = round(random.uniform(0.12, 0.20), 2)
-            xmin = round(random.uniform(0.14, 0.22), 2)
-            ymax = round(ymin + random.uniform(0.55, 0.70), 2)
-            xmax = round(xmin + random.uniform(0.55, 0.70), 2)
-        else: # Portrait (common for phone held up)
-            ymin = round(random.uniform(0.08, 0.16), 2)
-            xmin = round(random.uniform(0.20, 0.28), 2)
-            ymax = round(min(0.95, ymin + random.uniform(0.68, 0.80)), 2)
-            xmax = round(min(0.92, xmin + random.uniform(0.44, 0.55)), 2)
+        # Saliency bounding box from neural vision inference
+        bbox = raw_pred.get("bounding_box", [0.18, 0.20, 0.82, 0.80])
 
         return {
             "predicted_category": primary_category, # Level 1
@@ -407,7 +345,7 @@ class AIVisionService:
             "confidence_pct": int(confidence * 100),
             "status": status_label,
             "is_low_confidence": is_low_confidence,
-            "bounding_box": [ymin, xmin, ymax, xmax],
+            "bounding_box": bbox,
             "stage_notes": stage_notes,
             "secondary_prediction": {
                 "detected_item": secondary_item,

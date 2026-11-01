@@ -61,3 +61,16 @@ Thumbs.db
 
 # SQLite database files
 *.db
+*.dbc
+cloudflared.exe
+
+# Dataset Storage (large image corpora)
+backend/data/
+data/
+*.zip
+
+# Intermediate superseded model checkpoints (keep active production v5.0.pt)
+backend/models/checkpoints/v1*.pt
+backend/models/checkpoints/v2*.pt
+backend/models/checkpoints/v3*.pt
+backend/models/checkpoints/v4*.pt

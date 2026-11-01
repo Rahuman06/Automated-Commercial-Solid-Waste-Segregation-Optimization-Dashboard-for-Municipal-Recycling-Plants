@@ -359,7 +359,7 @@ export default function ContributeToImproveAIPage() {
               {uploadSuccess.upload?.imageUrl && (
                 <div className="w-16 h-16 rounded-lg overflow-hidden bg-slate-100 flex-shrink-0 border border-slate-200">
                   <img
-                    src={uploadSuccess.upload.imageUrl.startsWith("http") ? uploadSuccess.upload.imageUrl : `http://localhost:8000${uploadSuccess.upload.imageUrl}`}
+                    src={uploadSuccess.upload.imageUrl}
                     alt="Uploaded waste"
                     className="w-full h-full object-cover"
                   />
@@ -693,9 +693,7 @@ export default function ContributeToImproveAIPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
             {recentUploads.map((u) => {
-              const displayUrl = u.image_url.startsWith("http")
-                ? u.image_url
-                : `http://localhost:8000${u.image_url}`;
+              const displayUrl = u.image_url;
               return (
                 <div
                   key={u.id}

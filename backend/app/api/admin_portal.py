@@ -669,6 +669,12 @@ def activate_model(
     target.status = "production"
     db.commit()
 
+    # Hot-swap PyTorch model weights in memory
+    ckpt_path = os.path.join(settings.BASE_DIR, "models", "checkpoints", f"{target.version}.pt")
+    if os.path.exists(ckpt_path):
+        from app.services.model_inference import inference_service
+        inference_service.load_checkpoint(ckpt_path, target.version)
+
     return {
         "success": True,
         "message": f"Model {target.version} ('{target.model_name}') is now the ACTIVE production model.",

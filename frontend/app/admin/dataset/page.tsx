@@ -105,12 +105,10 @@ export default function VerifiedDatasetPage() {
       alert(err.message || "Failed to delete image.");
     }
   };
-
   const handleExport = (format: "json" | "csv") => {
-    const url = `http://localhost:8000/api/admin/dataset/export?format=${format}`;
+    const url = `/api/admin/dataset/export?format=${format}`;
     window.open(url, "_blank");
   };
-
   const categoriesList = [
     "All",
     "Plastic",
@@ -239,9 +237,7 @@ export default function VerifiedDatasetPage() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {datasetImages.map((img) => {
-            const displayImgUrl = img.image_url.startsWith("http")
-              ? img.image_url
-              : `http://localhost:8000${img.image_url}`;
+            const displayImgUrl = img.image_url;
             const badgeClass = CATEGORY_COLORS[img.waste_category] || "bg-slate-100 text-slate-700 border-slate-300";
 
             return (

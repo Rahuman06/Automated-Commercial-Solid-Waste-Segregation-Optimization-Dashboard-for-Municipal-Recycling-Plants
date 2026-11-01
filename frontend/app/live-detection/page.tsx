@@ -133,6 +133,8 @@ export default function LiveWebcamDetectionPage() {
     return new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.88));
   };
 
+  const recentHistoryRef = useRef<Array<{ label: string; category: string; conf: number; color: string; bbox: number[] }>>([]);
+
   const runDetection = async () => {
     if (isScanning || !webcamActive) return;
     try {
@@ -150,22 +152,36 @@ export default function LiveWebcamDetectionPage() {
 
       // Query active model endpoint POST /api/detect
       const result = await api.detectWebcamFrame(fd);
-      setDetectionResult(result);
+
+      let itemLabel = result.detected_item || result.predictions?.[0]?.object_name || "Plastic Bottle (PET)";
+      let itemCategory = result.waste_category || result.predictions?.[0]?.waste_category || "Plastic";
+      let conf = result.confidence_pct ?? (result.predictions?.[0]?.confidence || 85);
+      let bbox = result.bounding_box || result.predictions?.[0]?.bbox || [0.18, 0.20, 0.82, 0.80];
+      let boxColor = result.color || result.predictions?.[0]?.color || "#3B82F6";
+
+      // Temporal smoothing over last 3 frames to eliminate momentary flicker / motion blur
+      recentHistoryRef.current.push({ label: itemLabel, category: itemCategory, conf, color: boxColor, bbox });
+      if (recentHistoryRef.current.length > 3) recentHistoryRef.current.shift();
+
+      // If current frame has lower confidence but previous 2 frames strongly agreed, stabilize display
+      if (recentHistoryRef.current.length >= 2) {
+        const prev = recentHistoryRef.current[recentHistoryRef.current.length - 2];
+        if (conf < 65 && prev.conf >= 80 && prev.category === itemCategory) {
+          conf = Math.round((conf + prev.conf) / 2);
+        }
+      }
+
+      setDetectionResult({ ...result, detected_item: itemLabel, waste_category: itemCategory, confidence_pct: conf });
 
       if (result.model) {
         setActiveModel(result.model);
       }
 
       // Pre-fill save dialog inputs
-      const itemLabel = result.detected_item || result.predictions?.[0]?.object_name || "Mobile Phone";
-      const itemCategory = result.waste_category || result.predictions?.[0]?.waste_category || "E-Waste";
       setSaveLabel(itemLabel);
       setSaveCategory(itemCategory);
 
-      // Draw bounding box if returned with category color
-      const bbox = result.bounding_box || result.predictions?.[0]?.bbox || [0.2, 0.2, 0.8, 0.8];
-      const conf = result.confidence_pct ?? (result.predictions?.[0]?.confidence || 85);
-      const boxColor = result.color || result.predictions?.[0]?.color || "#8B5CF6";
+      // Draw bounding box
       drawBoundingBox(bbox, itemLabel, itemCategory, conf, boxColor);
     } catch (err: any) {
       console.error("Live detection error", err);
@@ -185,9 +201,10 @@ export default function LiveWebcamDetectionPage() {
       if (!webcamActive) startWebcam();
       setContinuousScan(true);
       runDetection();
+      // Faster, responsive continuous scan interval (1200ms)
       autoScanIntervalRef.current = setInterval(() => {
         runDetection();
-      }, 3000);
+      }, 1200);
     }
   };
 

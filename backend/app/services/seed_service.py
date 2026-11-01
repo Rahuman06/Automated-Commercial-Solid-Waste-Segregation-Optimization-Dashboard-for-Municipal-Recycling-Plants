@@ -515,7 +515,37 @@ def seed_database(db: Session):
             tag="AI RECOMMENDATION"
         )
     ]
-    db.add_all(recs)
-    db.commit()
+    # 13. Seed Trained AI Model (v1.0)
+    v1_model = db.query(AIModelVersion).filter(AIModelVersion.version == "v1.0").first()
+    if not v1_model:
+        db.query(AIModelVersion).update({AIModelVersion.is_active_production: False})
+        v1_model = AIModelVersion(
+            model_name="GCC-WasteVision-MobileNetV3",
+            version="v1.0",
+            status="production",
+            framework="PyTorch 2.6 / CUDA 12.4 (RTX 3050)",
+            accuracy=0.9574,
+            precision=0.9574,
+            recall=0.9563,
+            f1_score=0.9565,
+            training_images_count=5246,
+            dataset_version="GCC-Waste-v1.0",
+            class_metrics_json=json.dumps([
+                {"class_name": "Biodegradable", "precision": 0.9669, "recall": 0.9865, "f1_score": 0.9766, "test_images": 148},
+                {"class_name": "Cardboard", "precision": 0.9362, "recall": 0.9851, "f1_score": 0.9600, "test_images": 134},
+                {"class_name": "E-Waste", "precision": 0.9859, "recall": 0.9859, "f1_score": 0.9859, "test_images": 142},
+                {"class_name": "Glass", "precision": 0.9532, "recall": 0.9532, "f1_score": 0.9532, "test_images": 299},
+                {"class_name": "Metal", "precision": 0.9478, "recall": 0.9397, "f1_score": 0.9437, "test_images": 116},
+                {"class_name": "Paper", "precision": 0.9625, "recall": 0.9747, "f1_score": 0.9686, "test_images": 158},
+                {"class_name": "Plastic", "precision": 0.9496, "recall": 0.8692, "f1_score": 0.9076, "test_images": 130}
+            ]),
+            is_active_production=True,
+            mobile_phone_recall=0.9859,
+            mobile_phone_precision=0.9859,
+            ewaste_f1=0.9859,
+            notes="Trained on RTX 3050 GPU using MobileNetV3-Large transfer learning on 7 solid waste classes."
+        )
+        db.add(v1_model)
+        db.commit()
 
     print("Chennai Waste Management Platform database successfully seeded with authentic data.")

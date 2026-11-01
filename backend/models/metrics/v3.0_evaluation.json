@@ -1,0 +1,132 @@
+{
+  "version": "v3.0",
+  "dataset_name": "Mega Waste Corpus (PhenomSG + MostafaAbla + Roboflow + ASDASDAS + Mobile Annotations)",
+  "training_time_seconds": 2204.5,
+  "total_epochs": 10,
+  "batch_size": 32,
+  "test_accuracy": 0.9462,
+  "test_loss": 0.5972,
+  "macro_precision": 0.9407,
+  "macro_recall": 0.9409,
+  "macro_f1_score": 0.9407,
+  "per_class": {
+    "Biodegradable": {
+      "precision": 0.9497,
+      "recall": 0.9561,
+      "f1_score": 0.9529,
+      "support": 592
+    },
+    "Cardboard": {
+      "precision": 0.9335,
+      "recall": 0.952,
+      "f1_score": 0.9427,
+      "support": 354
+    },
+    "E-Waste": {
+      "precision": 0.9216,
+      "recall": 0.9216,
+      "f1_score": 0.9216,
+      "support": 204
+    },
+    "Glass": {
+      "precision": 0.9685,
+      "recall": 0.9712,
+      "f1_score": 0.9699,
+      "support": 729
+    },
+    "Metal": {
+      "precision": 0.9316,
+      "recall": 0.9478,
+      "f1_score": 0.9397,
+      "support": 345
+    },
+    "Paper": {
+      "precision": 0.9568,
+      "recall": 0.9194,
+      "f1_score": 0.9377,
+      "support": 434
+    },
+    "Plastic": {
+      "precision": 0.9233,
+      "recall": 0.9181,
+      "f1_score": 0.9207,
+      "support": 354
+    }
+  },
+  "classes": [
+    "Biodegradable",
+    "Cardboard",
+    "E-Waste",
+    "Glass",
+    "Metal",
+    "Paper",
+    "Plastic"
+  ],
+  "num_classes": 7,
+  "confusion_matrix": [
+    [
+      566,
+      1,
+      4,
+      5,
+      4,
+      1,
+      11
+    ],
+    [
+      0,
+      337,
+      4,
+      3,
+      0,
+      9,
+      1
+    ],
+    [
+      7,
+      2,
+      188,
+      2,
+      2,
+      0,
+      3
+    ],
+    [
+      5,
+      2,
+      1,
+      708,
+      7,
+      1,
+      5
+    ],
+    [
+      7,
+      0,
+      2,
+      2,
+      327,
+      4,
+      3
+    ],
+    [
+      7,
+      15,
+      3,
+      2,
+      4,
+      399,
+      4
+    ],
+    [
+      4,
+      4,
+      2,
+      9,
+      7,
+      3,
+      325
+    ]
+  ],
+  "checkpoint_path": "D:\\mini project\\final product\\website\\backend\\models\\checkpoints\\v3.0.pt"
+}

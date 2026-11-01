@@ -1,0 +1,132 @@
+{
+  "version": "v5.0",
+  "dataset_name": "Mega Waste Corpus v5.0 (AlistairKing Recyclable + Nandini Metal + Akshat E-Waste + YadavMohit Plastic + Roboflow + PhenomSG + MostafaAbla)",
+  "training_time_seconds": 2659.55,
+  "total_epochs": 10,
+  "batch_size": 32,
+  "test_accuracy": 0.9286,
+  "test_loss": 0.635,
+  "macro_precision": 0.9288,
+  "macro_recall": 0.9295,
+  "macro_f1_score": 0.9291,
+  "per_class": {
+    "Biodegradable": {
+      "precision": 0.9541,
+      "recall": 0.935,
+      "f1_score": 0.9444,
+      "support": 600
+    },
+    "Cardboard": {
+      "precision": 0.939,
+      "recall": 0.9514,
+      "f1_score": 0.9452,
+      "support": 453
+    },
+    "E-Waste": {
+      "precision": 0.9503,
+      "recall": 0.9567,
+      "f1_score": 0.9535,
+      "support": 600
+    },
+    "Glass": {
+      "precision": 0.9317,
+      "recall": 0.9317,
+      "f1_score": 0.9317,
+      "support": 600
+    },
+    "Metal": {
+      "precision": 0.907,
+      "recall": 0.9366,
+      "f1_score": 0.9216,
+      "support": 552
+    },
+    "Paper": {
+      "precision": 0.899,
+      "recall": 0.89,
+      "f1_score": 0.8945,
+      "support": 600
+    },
+    "Plastic": {
+      "precision": 0.9203,
+      "recall": 0.905,
+      "f1_score": 0.9126,
+      "support": 600
+    }
+  },
+  "classes": [
+    "Biodegradable",
+    "Cardboard",
+    "E-Waste",
+    "Glass",
+    "Metal",
+    "Paper",
+    "Plastic"
+  ],
+  "num_classes": 7,
+  "confusion_matrix": [
+    [
+      561,
+      4,
+      5,
+      4,
+      5,
+      14,
+      7
+    ],
+    [
+      3,
+      431,
+      1,
+      0,
+      2,
+      16,
+      0
+    ],
+    [
+      4,
+      0,
+      574,
+      3,
+      10,
+      6,
+      3
+    ],
+    [
+      5,
+      1,
+      5,
+      559,
+      18,
+      4,
+      8
+    ],
+    [
+      7,
+      1,
+      8,
+      4,
+      517,
+      7,
+      8
+    ],
+    [
+      5,
+      19,
+      10,
+      5,
+      6,
+      534,
+      21
+    ],
+    [
+      3,
+      3,
+      1,
+      25,
+      12,
+      13,
+      543
+    ]
+  ],
+  "checkpoint_path": "D:\\mini project\\final product\\website\\backend\\models\\checkpoints\\v5.0.pt"
+}
