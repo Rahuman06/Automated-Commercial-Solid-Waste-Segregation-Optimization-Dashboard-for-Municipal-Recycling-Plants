@@ -33,6 +33,18 @@ app = FastAPI(
     description="Automated Solid Waste Segregation & AI Model Continuous Improvement Dashboard for Municipal Recycling Plants (Greater Chennai Corporation)"
 )
 
+# Middleware to prevent internal localhost redirect leaks over reverse proxies / tunnels
+@app.middleware("http")
+async def fix_redirect_middleware(request: Request, call_next):
+    response = await call_next(request)
+    if response.status_code in (301, 302, 307, 308) and "location" in response.headers:
+        loc = response.headers["location"]
+        if "127.0.0.1:8000" in loc or "localhost:8000" in loc or "0.0.0.0:8000" in loc:
+            import re
+            relative_loc = re.sub(r"^https?://[^/]+", "", loc)
+            response.headers["location"] = relative_loc
+    return response
+
 # Enable CORS for Next.js frontend
 app.add_middleware(
     CORSMiddleware,
@@ -117,10 +129,10 @@ async def detect_frame_with_active_model(
     bbox_xywh = [xmin, ymin, round(xmax - xmin, 4), round(ymax - ymin, 4)]
 
     # Model name & metrics
-    m_name = active_model.model_name if active_model else "Waste Detection Model v2.1"
-    m_ver = active_model.version if active_model else "v2.1"
-    m_framework = active_model.framework if active_model else "PyTorch 2.2 / YOLOv8-Waste"
-    m_acc = active_model.accuracy if active_model else 0.918
+    m_name = active_model.model_name if active_model else "GCC-WasteVision-MobileNetV3-UltimateMasterCorpus"
+    m_ver = active_model.version if active_model else "v5.0"
+    m_framework = active_model.framework if active_model else "PyTorch 2.6 / CUDA 12.4 (RTX 3050)"
+    m_acc = active_model.accuracy if active_model else 0.9286
 
     return {
         "success": True,

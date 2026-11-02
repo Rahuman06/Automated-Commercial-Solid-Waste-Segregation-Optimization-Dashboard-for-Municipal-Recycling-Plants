@@ -99,7 +99,7 @@ export const api = {
     const params = new URLSearchParams();
     if (zoneId) params.append("zone_id", zoneId.toString());
     if (sortBy) params.append("sort_by", sortBy);
-    return fetchApi<any[]>(`/wards/?${params.toString()}`);
+    return fetchApi<any[]>(`/wards?${params.toString()}`);
   },
   getWardRankings: () => fetchApi<any[]>("/wards/rankings"),
   getWardByNumber: (wardNumber: number) => fetchApi<any>(`/wards/${wardNumber}`),
@@ -119,14 +119,14 @@ export const api = {
     }),
 
   // Vehicles
-  getVehicles: () => fetchApi<any[]>("/vehicles/"),
+  getVehicles: () => fetchApi<any[]>("/vehicles"),
 
   // Detections
   getRecentDetections: (vehicleCode?: string, limit: number = 30) => {
     const params = new URLSearchParams();
     if (vehicleCode) params.append("vehicle_code", vehicleCode);
     params.append("limit", limit.toString());
-    return fetchApi<any[]>(`/detections/?${params.toString()}`);
+    return fetchApi<any[]>(`/detections?${params.toString()}`);
   },
   simulateTruckScan: (formData: FormData) =>
     fetchApi<any>("/detections/simulate-truck-scan", {

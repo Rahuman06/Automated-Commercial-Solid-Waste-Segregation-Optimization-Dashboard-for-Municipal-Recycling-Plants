@@ -7,7 +7,8 @@ from app.schemas.ward import WardSummary, WardDetail, WardRanking
 
 router = APIRouter(prefix="/wards", tags=["Ward Analytics"])
 
-@router.get("/", response_model=List[WardSummary])
+@router.get("", response_model=List[WardSummary])
+@router.get("/", response_model=List[WardSummary], include_in_schema=False)
 def get_all_wards(
     zone_id: Optional[int] = None,
     sort_by: Optional[str] = Query("ward_number", pattern="^(ward_number|daily_waste_tons|segregation_efficiency|pollution_risk_score|recycling_potential)$"),

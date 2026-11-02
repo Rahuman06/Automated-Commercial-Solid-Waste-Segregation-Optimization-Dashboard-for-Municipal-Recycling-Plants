@@ -18,7 +18,8 @@ from app.services.ai_vision_service import AIVisionService
 
 router = APIRouter(prefix="/detections", tags=["Smart Garbage Truck AI Detection"])
 
-@router.get("/", response_model=List[AIDetectionSchema])
+@router.get("", response_model=List[AIDetectionSchema])
+@router.get("/", response_model=List[AIDetectionSchema], include_in_schema=False)
 def get_recent_detections(
     vehicle_code: Optional[str] = None,
     ward_number: Optional[int] = None,

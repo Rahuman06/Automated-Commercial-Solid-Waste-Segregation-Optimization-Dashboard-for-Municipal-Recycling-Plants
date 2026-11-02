@@ -9,7 +9,8 @@ from app.schemas.common_schemas import VehicleSchema
 
 router = APIRouter(prefix="/vehicles", tags=["Collection Monitoring & Smart Fleet"])
 
-@router.get("/", response_model=List[VehicleSchema])
+@router.get("", response_model=List[VehicleSchema])
+@router.get("/", response_model=List[VehicleSchema], include_in_schema=False)
 def get_all_vehicles(db: Session = Depends(get_db)):
     vehicles = db.query(CollectionVehicle).all()
     # Apply minor jitter to coordinates for real-time tracking feel

@@ -7,7 +7,8 @@ from app.schemas.common_schemas import PlantSchema
 
 router = APIRouter(prefix="/plants", tags=["Segregation & Recycling Plants"])
 
-@router.get("/", response_model=List[PlantSchema])
+@router.get("", response_model=List[PlantSchema])
+@router.get("/", response_model=List[PlantSchema], include_in_schema=False)
 def get_plants(
     status: Optional[str] = Query(None, pattern="^(active|inactive|maintenance)"),
     facility_type: Optional[str] = None,

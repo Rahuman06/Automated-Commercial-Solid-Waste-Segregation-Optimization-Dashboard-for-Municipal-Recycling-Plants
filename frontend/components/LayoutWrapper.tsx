@@ -29,7 +29,7 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
               <div className="flex items-center space-x-4 text-slate-400">
                 <span>Ripon Building, Chennai - 600003</span>
                 <span>•</span>
-                <span className="text-teal-700 font-medium">Model Version: YOLO-v2.1 Production</span>
+                <span className="text-teal-700 font-medium">Model Version: v5.0 Production (MobileNetV3)</span>
               </div>
             </div>
           </footer>
